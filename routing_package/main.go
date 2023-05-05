@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -15,7 +16,14 @@ type Task struct {
 	Due  time.Time `json:"due"`
 }
 
-var task []Task
+var tasks = []Task{
+	{
+		Id:   1,
+		Text: "Task 1",
+		Tags: []string{"tag1", "tag2"},
+		Due:  time.Now(),
+	},
+}
 
 func main() {
 	router := chi.NewRouter()
@@ -38,7 +46,14 @@ func main() {
 }
 
 func getTasks(writer http.ResponseWriter, request *http.Request) {
-	writer.Write([]byte("Getting all tasks!"))
+	// writer.Write([]byte("Getting all tasks!"))
+	jsonTasks, err := json.Marshal(tasks)
+	if err != nil {
+		panic(err)
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	writer.Write(jsonTasks)
 }
 
 func getTask(writer http.ResponseWriter, request *http.Request) {
