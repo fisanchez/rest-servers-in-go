@@ -30,22 +30,31 @@ func main() {
 
 	// Logs server requests to terminal
 	router.Use(middleware.Logger)
+	router.Use(setJSONContentTypeHeader)
 
-	// router
+	// root
 	router.Get("/", func(writer http.ResponseWriter, request *http.Request) {
-		writer.Write([]byte("Hello World!"))
+		writer.Write([]byte("Nothing to see here, move along."))
 	})
-
 	// Get(pattern string, h http.HandlerFunc)
 	router.Get("/tasks", getTasks)
+	// Get a task from an ID
 	router.Get("/tasks/{id}", getTask)
-
 	// Create a task
-	router.Post("/tasks", postTask)
+	router.Post("/tasks", createTask)
 	// Delete a task
 	router.Post("/tasks/{id}", deleteTask)
 
 	http.ListenAndServe(":8080", router)
+}
+
+// Writing a middleware function
+// TODO: Read up more about this. I'm not 100% sure what's going on here.
+func setJSONContentTypeHeader(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		next.ServeHTTP(w, r)
+	})
 }
 
 func getTasks(writer http.ResponseWriter, request *http.Request) {
@@ -54,7 +63,6 @@ func getTasks(writer http.ResponseWriter, request *http.Request) {
 		panic(err)
 	}
 
-	writer.Header().Set("Content-Type", "application/json")
 	writer.Write(jsonTasks)
 }
 
@@ -62,9 +70,8 @@ func getTask(writer http.ResponseWriter, request *http.Request) {
 	writer.Write([]byte("Getting a task!"))
 }
 
-func postTask(writer http.ResponseWriter, request *http.Request) {
-	writer.Header().Set("Content-Type", "application/json")
-
+// This works without explictly returning; why??
+func createTask(writer http.ResponseWriter, request *http.Request) {
 	var task Task
 
 	// Take the request body and decode it into the task struct
